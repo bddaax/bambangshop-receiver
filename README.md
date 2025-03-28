@@ -86,4 +86,36 @@ This is the place for you to write reflections:
 
 #### Reflection Subscriber-1
 
+> In this tutorial, we used RwLock<> to synchronise the use of Vec of Notifications. Explain why it is necessary for this case, and explain why we do not use Mutex<> instead?
+
+Dalam implementasi ini, kita menggunakan `RwLock<Vec<Notification>>` untuk menyinkronkan akses ke daftar notifikasi yang disimpan dalam memori.
+
+Keuntungan RwLock<> dibandingkan Mutex<>:
+1) Mendukung beberapa pembaca sekaligus (multiple readers, single writer) : 
+`RwLock<>` memungkinkan beberapa thread untuk membaca data secara bersamaan tanpa saling mengganggu. Sedangkan `Mutex<>`, bahkan operasi pembacaan harus dilakukan secara eksklusif, yang bisa menyebabkan bottleneck jika ada banyak proses yang hanya ingin membaca notifikasi.
+
+2) Efisiensi dalam akses data : 
+Dalam BambangShop-Receiver, operasi membaca `list_all_as_string()` lebih sering dilakukan dibandingkan operasi menulis (add()).
+`RwLock<>` lebih efisien karena hanya membatasi thread lain saat ada operasi tulis, sedangkan `Mutex<>` akan mengunci akses sepenuhnya meskipun hanya operasi baca yang sedang berlangsung.
+
+Mengapa tidak menggunakan Mutex<>?
+`Mutex<>` hanya mengizinkan satu thread untuk mengakses data pada satu waktu, baik untuk membaca maupun menulis. Hal ini berarti meskipun hanya ingin membaca daftar notifikasi, akses harus dilakukan secara eksklusif, yang bisa memperlambat kinerja aplikasi ketika banyak thread membaca data secara bersamaan.
+
+
+> In this tutorial, we used lazy_static external library to define Vec and DashMap as a “static” variable. Compared to Java where we can mutate the content of a static variable via a static function, why did not Rust allow us to do so?
+
+Rust tidak mengizinkan mutasi langsung terhadap variabel statis (static) karena semua variabel static harus memiliki lifetime 'static dan harus bersifat immutable secara default.
+
+Namun, dalam BambangShop-Receiver, kita perlu menyimpan daftar notifikasi (Vec<Notification>) dalam variabel statis yang bisa diperbarui (mutable). Oleh karena itu, kita menggunakan `lazy_static!`, yang memungkinkan kita untuk:
+
+1) Menunda inisialisasi hingga saat runtime : 
+Rust tidak mengizinkan variabel static yang memiliki nilai yang bisa berubah setelah kompilasi. `lazy_static!` memungkinkan kita untuk menginisialisasi variabel global yang bisa berubah di runtime.
+
+2) Menghindari masalah data race : 
+Rust menerapkan aturan kepemilikan (ownership) yang ketat untuk mencegah data race. Dengan `lazy_static!`, kita dapat membungkus Vec<Notification> dalam RwLock<>, sehingga tetap aman dalam lingkungan multi-thread.
+
+Mengapa Rust tidak mengizinkan mutasi langsung seperti di Java?
+Dalam Java, kita bisa mengubah variabel static melalui metode static, tetapi ini rentan terhadap masalah data race jika diakses secara bersamaan oleh beberapa thread. Rust mencegah mutasi langsung terhadap variabel static untuk menjaga keamanan memori dan keamanan dalam lingkungan multi-thread. Jika Rust mengizinkan perubahan langsung pada variabel static, itu bisa menyebabkan kondisi balapan (race condition) atau undefined behavior dalam lingkungan paralel.
+
+
 #### Reflection Subscriber-2
