@@ -119,3 +119,29 @@ Dalam Java, kita bisa mengubah variabel static melalui metode static, tetapi ini
 
 
 #### Reflection Subscriber-2
+
+> Have you explored things outside of the steps in the tutorial, for example: src/lib.rs? If not, explain why you did not do so. If yes, explain things that you have learned from those other parts of code.
+
+Saya belum terlalu banyak mengeksplorasi bagian di luar langkah-langkah tutorial, karena saya fokus untuk menyelesaikan implementasi dasar sesuai dengan instruksi. Namun, saya sempat melihat `src/lib.rs` dan beberapa modul lain untuk memahami bagaimana konfigurasi aplikasi diatur.
+
+Dari `src/lib.rs`, saya melihat bahwa aplikasi menggunakan `lazy_static!` untuk menginisialisasi objek global seperti `REQWEST_CLIENT` dan `APP_CONFIG`. Selain itu, konfigurasi aplikasi diambil menggunakan Figment, yang memungkinkan aplikasi membaca variabel lingkungan melalui `dotenvy`. Jika variabel lingkungan tidak tersedia, maka akan digunakan nilai default yang sudah ditentukan dalam struct `AppConfig`.
+
+Saya juga melihat bagaimana aplikasi menangani error dengan `compose_error_response()`, yang membentuk respons JSON dengan status kode HTTP yang sesuai. Meskipun saya belum mengeksplorasi lebih dalam, pemahaman ini membantu saya mengerti bagaimana konfigurasi aplikasi dikelola dan bagaimana aplikasi menangani request secara umum.
+
+
+> Since you have completed the tutorial by now and have tried to test your notification system by spawning multiple instances of Receiver, explain how Observer pattern eases you to plug in more subscribers. How about spawning more than one instance of Main app, will it still be easy enough to add to the system?
+
+Observer pattern membuat sistem notifikasi menjadi fleksibel karena setiap instance Receiver bisa langsung berlangganan tanpa harus mengubah kode di Publisher. Cukup dengan menambahkan subscriber baru melalui HTTP request ke `endpoint /subscribe/{product_type}`, dan Receiver akan mulai menerima notifikasi ketika ada perubahan di Main app.
+
+Bagaimana jika ada lebih dari satu Main app?
+Menjalankan beberapa instance Main app bisa menjadi tantangan. Saat ini, BambangShop hanya mengenali satu Publisher (Main app), sehingga jika ada lebih dari satu, kita harus memastikan mereka tidak mengirim notifikasi ganda atau tumpang-tindih dalam pengelolaan subscriber. Mungkin perlu mekanisme tambahan seperti load balancing atau message queue  untuk menangani banyak instance Publisher dengan lebih baik.
+
+
+> Have you tried to make your own Tests, or enhance documentation on your Postman collection? If you have tried those features, tell us whether it is useful for your work (it can be your tutorial work or your Group Project).
+
+Saya mencoba menambahkan beberapa skenario pengujian di Postman, seperti:
+- Menguji apakah Receiver menerima notifikasi setelah subscribe
+- Mencoba unsubscribe dan melihat apakah Receiver benar-benar berhenti menerima notifikasi
+- Menjalankan beberapa Receiver sekaligus untuk memastikan sistem bisa menangani banyak subscriber
+
+Dokumentasi di Postman sangat membantu untuk mengorganisir request dan memahami alur komunikasi antara Publisher dan Receiver. Ini juga mempermudah debugging jika ada masalah dalam pengiriman notifikasi.
